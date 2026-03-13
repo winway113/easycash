@@ -4,113 +4,240 @@ html
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Easy Cash App</title>
+    <title>Easy Cash Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding-bottom: 70px; }
-        .header { padding: 20px; background-color: #2c2c2c; border-bottom: 2px solid #333; text-align: center; }
-        .balance-card { background: linear-gradient(135deg, #4caf50, #2e7d32); margin: 20px; padding: 20px; border-radius: 15px; text-align: center; }
-        .tabs { display: flex; justify-content: space-around; background: #2c2c2c; padding: 10px 0; position: sticky; top: 0; z-index: 10; }
-        .tab { padding: 10px 15px; cursor: pointer; border-radius: 20px; opacity: 0.6; font-size: 13px; font-weight: bold; }
-        .tab.active { background-color: #4caf50; opacity: 1; }
-        .content { padding: 20px; }
+        :root {
+            --bg-color: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --accent-color: #00ff88;
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --error-color: #ff4d4d;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding-bottom: 80px;
+            user-select: none;
+        }
+
+        .header { 
+            padding: 25px 20px; 
+            background: linear-gradient(to bottom, #1a1a1a, var(--bg-color));
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+
+        .balance-card { 
+            background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%);
+            margin: 0 20px 20px 20px; 
+            padding: 25px; 
+            border-radius: 20px; 
+            text-align: center;
+            border: 1px solid #333;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .balance-label { font-size: 14px; color: var(--text-dim); margin-bottom: 5px; }
+        .balance-value { font-size: 32px; font-weight: bold; color: var(--accent-color); }
+
+        /* Прогресс-бар до вывода */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .tabs { 
+            display: flex; 
+            justify-content: space-around; 
+            background: var(--card-bg); 
+            padding: 12px 5px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+            border-bottom: 1px solid #333;
+        }
+        .tab { 
+            padding: 8px 16px; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            font-size: 13px; 
+            font-weight: 600;
+            color: var(--text-dim);
+            transition: all 0.3s;
+        }
+        .tab.active { 
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-color); 
+        }
+
+        .content { padding: 20px; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .hidden { display: none; }
-        .btn-action { background-color: #4caf50; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 10px; font-weight: bold; }
-        .input-promo { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #2c2c2c; color: white; box-sizing: border-box; text-align: center; font-size: 18px; margin-bottom: 10px; outline: none; }
-        .task-card { background: #2c2c2c; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; border-left: 5px solid #4caf50; }
+
+        .task-card { 
+            background: var(--card-bg); 
+            padding: 18px; 
+            border-radius: 18px; 
+            margin-bottom: 15px; 
+            border: 1px solid #2a2a2a;
+            transition: transform 0.2s;
+        }
+        .task-card:active { transform: scale(0.98); }
+
+        .btn-action { 
+            background: var(--accent-color); 
+            color: #000; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 12px; 
+            width: 100%; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            font-weight: 700;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+        .btn-check { background: #2196F3; color: white; }
+        .btn-out { background: var(--error-color); color: white; }
+
+        .promo-box {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px dashed var(--accent-color);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            background: #252525;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        input:focus { border-color: var(--accent-color); outline: none; }
     </style>
 </head>
 <body>
-    <div class="header"><h2>EASY CASH</h2></div>
+    <div class="header">EASY CASH</div>
+
     <div class="balance-card">
-        <div style="font-size: 0.8em; opacity: 0.8;">Ваш баланс:</div>
-        <div id="main-balance" style="font-size: 2.2em; font-weight: bold;">0 ₽</div>
+        <div class="balance-label">ДОСТУПНЫЙ БАЛАНС</div>
+        <div id="main-balance" class="balance-value">0 ₽</div>
+        <div class="progress-container">
+            <div id="p-bar" class="progress-bar"></div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px;">
+            До вывода (1000₽): <span id="p-percent">0</span>%
+        </div>
     </div>
 
     <div class="tabs">
-        <div id="tab-tasks" class="tab active" onclick="showTab('tasks')">Задания</div>
-        <div id="tab-promo" class="tab" onclick="showTab('promo')">Промокод</div>
-        <div id="tab-refs" class="tab" onclick="showTab('refs')">Рефералы</div>
-        <div id="tab-out" class="tab" onclick="showTab('out')">Вывод</div>
+        <div id="tab-tasks" class="tab active" onclick="showTab('tasks')">ЗАДАНИЯ</div>
+        <div id="tab-promo" class="tab" onclick="showTab('promo')">ПРОМОКОД</div>
+        <div id="tab-refs" class="tab" onclick="showTab('refs')">ДРУЗЬЯ</div>
+        <div id="tab-out" class="tab" onclick="showTab('out')">ВЫВОД</div>
     </div>
 
-    <!-- Задания -->
     <div id="content-tasks" class="content">
         <div id="tasks-list">Загрузка...</div>
     </div>
 
-    <!-- Промокоды -->
     <div id="content-promo" class="content hidden">
-        <h3>Активация промокода</h3>
-        <input type="text" id="promo-input" class="input-promo" placeholder="ВВЕДИТЕ КОД">
-        <button class="btn-action" onclick="usePromo()">Активировать</button>
+        <div class="promo-box">
+            <h3 style="margin-top:0">Активация</h3>
+            <input type="text" id="promo-input" placeholder="Введите код...">
+            <button class="btn-action" onclick="usePromo()">АКТИВИРОВАТЬ</button>
+        </div>
     </div>
 
-    <!-- Рефералы -->
     <div id="content-refs" class="content hidden">
-        <h3>Рефералы</h3>
-        <p>За каждого друга: <b>20 ₽</b></p>
-        <div id="ref-link" style="background:#333; padding:10px; border-radius:5px; word-break:break-all; font-size: 12px; border: 1px dashed #555;">...</div>
-        <button class="btn-action" onclick="copyRef()">Копировать ссылку</button>
+        <div class="task-card">
+            <h3>Пригласи друга</h3>
+            <p style="color:var(--text-dim)">Получай <b>50 ₽</b> за каждого нового пользователя.</p>
+            <div id="ref-link" style="background:#000; padding:12px; border-radius:10px; font-size:11px; color:var(--accent-color); border: 1px solid #333; word-break: break-all;">...</div>
+            <button class="btn-action" onclick="copyRef()">КОПИРОВАТЬ ССЫЛКУ</button>
+        </div>
     </div>
 
-    <!-- Вывод -->
     <div id="content-out" class="content hidden">
-        <h3>Вывод средств</h3>
-        <p>Минимальная сумма: 1000 ₽</p>
-        <button class="btn-action" style="background:#f44336" onclick="tg.showAlert('Недостаточно средств для вывода!')">Запросить вывод</button>
+        <div class="task-card" style="text-align: center;">
+            <h3>Выплата</h3>
+            <p style="color:var(--text-dim)">Минимальная сумма накоплений составляет 1000 рублей.</p>
+            <button class="btn-action btn-out" onclick="tg.showAlert('Недостаточно средств для формирования заявки.')">ВЫВЕСТИ СРЕДСТВА</button>
+        </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+        tg.headerColor = '#1a1a1a';
 
-        // 1. Получаем данные из URL (баланс и задания)
         const urlParams = new URLSearchParams(window.location.search);
-        document.getElementById('main-balance').innerText = (urlParams.get('bal') || '0') + " ₽";
+        const bal = parseFloat(urlParams.get('bal') || '0');
+        document.getElementById('main-balance').innerText = bal + " ₽";
+        
+        // Обновление прогресс-бара
+        const percent = Math.min((bal / 1000) * 100, 100);
+        document.getElementById('p-bar').style.width = percent + "%";
+        document.getElementById('p-percent').innerText = Math.floor(percent);
         
         try {
             const rawTasks = urlParams.get('tasks');
             if (rawTasks) {
                 const tasks = JSON.parse(decodeURIComponent(rawTasks));
                 const list = document.getElementById('tasks-list');
-                list.innerHTML = tasks.length ? "" : "Нет новых заданий.";
+                list.innerHTML = tasks.length ? "" : "<p style='text-align:center; color:#666;'>Заданий пока нет...</p>";
                 tasks.forEach(t => {
                     list.innerHTML += `
                         <div class="task-card">
-                            <strong>${t.desc}</strong><br>
-                            <span style="color:#4caf50">+${t.reward} ₽</span><br>
-                            <button class="btn-action" onclick="window.open('${t.url}','_blank')">1. Перейти</button>
-                            <button class="btn-action" style="background:#2196F3" onclick="checkTask(${t.id},${t.reward})">2. Проверить</button>
+                            <div style="font-weight:bold; font-size:16px;">${t.desc}</div>
+                            <div style="color:var(--accent-color); margin: 5px 0 15px 0;">+${t.reward} ₽</div>
+                            <button class="btn-action" onclick="window.open('${t.url}','_blank')">ВЫПОЛНИТЬ</button>
+                            <button class="btn-action btn-check" onclick="checkTask(${t.id},${t.reward})">ПРОВЕРИТЬ</button>
                         </div>`;
                 });
             }
-        } catch(e){ console.error("Ошибка заданий:", e); }
+        } catch(e){}
 
-        // Функция проверки задания
         function checkTask(id, reward) {
             tg.sendData(JSON.stringify({action: "check_task", task_id: id, reward: reward}));
             tg.close();
         }
 
-        // Функция активации промокода
         function usePromo() {
-            const codeInput = document.getElementById('promo-input').value;
-            if(!codeInput) {
-                tg.showAlert("Введите промокод!");
-                return;
-            }
-            tg.sendData(JSON.stringify({action: "use_promo", code: codeInput}));
-            tg.close(); // Закрываем, чтобы бот прислал ответ
+            const code = document.getElementById('promo-input').value;
+            if(!code) return tg.showAlert("Введите код!");
+            tg.sendData(JSON.stringify({action: "use_promo", code: code}));
+            tg.close();
         }
 
-        // 2. Реферальная ссылка
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "0";
-        // Замени на юзернейм своего бота
-        const botUsername = "TalkingBattleBot"; 
-        document.getElementById('ref-link').innerText = "https://t.me/" + botUsername + "?start=" + userId;
+        document.getElementById('ref-link').innerText = "https://t.me/TalkingBattleBot?start=" + userId;
 
-        // 3. Переключение вкладок
         function showTab(t) {
             ["tasks","promo","refs","out"].forEach(id => {
                 document.getElementById('content-'+id).classList.toggle('hidden', id !== t);
@@ -119,8 +246,9 @@ html
         }
 
         function copyRef() {
-            const link = document.getElementById('ref-link').innerText;
-            navigator.clipboard.writeText(link);
+            navigator.clipboard.writeText(document.getElementById('ref-link').innerText);
+            tg.showScanQrPopup({text: "Ссылка скопирована!"}); // Просто красивый эффект
+            setTimeout(() => tg.closeScanQrPopup(), 1000);
             tg.showAlert("Ссылка скопирована!");
         }
     </script>
