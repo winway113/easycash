@@ -34,33 +34,38 @@ html
         <div id="tab-out" class="tab" onclick="showTab('out')">Вывод</div>
     </div>
 
+    <!-- Задания -->
     <div id="content-tasks" class="content">
         <div id="tasks-list">Загрузка...</div>
     </div>
 
+    <!-- Промокоды -->
     <div id="content-promo" class="content hidden">
         <h3>Активация промокода</h3>
         <input type="text" id="promo-input" class="input-promo" placeholder="ВВЕДИТЕ КОД">
-        <button id="promo-btn" class="btn-action" onclick="usePromo()">Активировать</button>
+        <button class="btn-action" onclick="usePromo()">Активировать</button>
     </div>
 
+    <!-- Рефералы -->
     <div id="content-refs" class="content hidden">
         <h3>Рефералы</h3>
-        <p>За друга: <b>20 ₽</b></p>
-        <div id="ref-link" style="background:#333; padding:10px; border-radius:5px; word-break:break-all; font-size: 12px;">...</div>
+        <p>За каждого друга: <b>20 ₽</b></p>
+        <div id="ref-link" style="background:#333; padding:10px; border-radius:5px; word-break:break-all; font-size: 12px; border: 1px dashed #555;">...</div>
         <button class="btn-action" onclick="copyRef()">Копировать ссылку</button>
     </div>
 
+    <!-- Вывод -->
     <div id="content-out" class="content hidden">
-        <h3>Вывод</h3>
-        <p>Минимум: 1000 ₽</p>
-        <button class="btn-action" style="background:#f44336" onclick="tg.showAlert('Недостаточно средств')">Вывести</button>
+        <h3>Вывод средств</h3>
+        <p>Минимальная сумма: 1000 ₽</p>
+        <button class="btn-action" style="background:#f44336" onclick="tg.showAlert('Недостаточно средств для вывода!')">Запросить вывод</button>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        // 1. Получаем данные из URL (баланс и задания)
         const urlParams = new URLSearchParams(window.location.search);
         document.getElementById('main-balance').innerText = (urlParams.get('bal') || '0') + " ₽";
         
@@ -71,30 +76,41 @@ html
                 const list = document.getElementById('tasks-list');
                 list.innerHTML = tasks.length ? "" : "Нет новых заданий.";
                 tasks.forEach(t => {
-                    list.innerHTML += `<div class="task-card"><strong>${t.desc}</strong><br><span style="color:#4caf50">+${t.reward} ₽</span><br><button class="btn-action" onclick="window.open('${t.url}','_blank')">1. Перейти</button><button class="btn-action" style="background:#2196F3" onclick="checkTask(${t.id},${t.reward})">2. Проверить</button></div>`;
+                    list.innerHTML += `
+                        <div class="task-card">
+                            <strong>${t.desc}</strong><br>
+                            <span style="color:#4caf50">+${t.reward} ₽</span><br>
+                            <button class="btn-action" onclick="window.open('${t.url}','_blank')">1. Перейти</button>
+                            <button class="btn-action" style="background:#2196F3" onclick="checkTask(${t.id},${t.reward})">2. Проверить</button>
+                        </div>`;
                 });
             }
-        } catch(e){}
+        } catch(e){ console.error("Ошибка заданий:", e); }
 
+        // Функция проверки задания
         function checkTask(id, reward) {
-            tg.sendData(JSON.stringify({action:"check_task", task_id:id, reward:reward}));
+            tg.sendData(JSON.stringify({action: "check_task", task_id: id, reward: reward}));
             tg.close();
         }
 
+        // Функция активации промокода
         function usePromo() {
             const codeInput = document.getElementById('promo-input').value;
             if(!codeInput) {
                 tg.showAlert("Введите промокод!");
                 return;
             }
-            // Отправляем данные и ЗАКРЫВАЕМ приложение
             tg.sendData(JSON.stringify({action: "use_promo", code: codeInput}));
-            setTimeout(() => { tg.close(); }, 100); 
+            tg.close(); // Закрываем, чтобы бот прислал ответ
         }
 
+        // 2. Реферальная ссылка
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "0";
-        document.getElementById('ref-link').innerText = "https://t.me/TalkingBattleBot?start=" + userId;
+        // Замени на юзернейм своего бота
+        const botUsername = "TalkingBattleBot"; 
+        document.getElementById('ref-link').innerText = "https://t.me/" + botUsername + "?start=" + userId;
 
+        // 3. Переключение вкладок
         function showTab(t) {
             ["tasks","promo","refs","out"].forEach(id => {
                 document.getElementById('content-'+id).classList.toggle('hidden', id !== t);
@@ -103,10 +119,10 @@ html
         }
 
         function copyRef() {
-            navigator.clipboard.writeText(document.getElementById('ref-link').innerText);
+            const link = document.getElementById('ref-link').innerText;
+            navigator.clipboard.writeText(link);
             tg.showAlert("Ссылка скопирована!");
         }
     </script>
 </body>
 </html>
-
