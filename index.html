@@ -15,16 +15,16 @@ html
         .tab.active { background-color: #4caf50; opacity: 1; }
         .content { padding: 20px; }
         .hidden { display: none; }
-        .btn-action { background-color: #4caf50; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 10px; }
-        .task-card { background: #2c2c2c; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: left; border-left: 5px solid #4caf50; }
+        .btn-action { background-color: #4caf50; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .task-card { background: #2c2c2c; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; border-left: 5px solid #4caf50; }
         .referral-link { background: #333; padding: 15px; border-radius: 8px; word-break: break-all; margin-top: 10px; border: 1px dashed #555; }
     </style>
 </head>
 <body>
-    <div class="header"><h2 id="user-greeting">EASY CASH</h2></div>
+    <div class="header"><h2>EASY CASH</h2></div>
     <div class="balance-card">
         <div style="font-size: 0.8em; opacity: 0.8;">Ваш баланс:</div>
-        <div id="main-balance" style="font-size: 2em; font-weight: bold;">0 ₽</div>
+        <div id="main-balance" style="font-size: 2.2em; font-weight: bold;">0 ₽</div>
     </div>
 
     <div class="tabs">
@@ -33,14 +33,14 @@ html
     </div>
 
     <div id="content-tasks" class="content">
-        <div id="tasks-list">Загрузка заданий...</div>
+        <div id="tasks-list">Загрузка...</div>
     </div>
 
     <div id="content-refs" class="content hidden">
         <h3>Рефералы</h3>
-        <p>За друга: <b>50 ₽</b></p>
+        <p>За каждого друга: <b>50 ₽</b></p>
         <div class="referral-link" id="ref-link">...</div>
-        <button class="btn-action" onclick="copyRef()">Копировать</button>
+        <button class="btn-action" onclick="copyRef()">Копировать ссылку</button>
     </div>
 
     <script>
@@ -48,27 +48,36 @@ html
         tg.expand();
 
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // Получаем и декодируем баланс
         document.getElementById('main-balance').innerText = (urlParams.get('bal') || '0') + " ₽";
         
-        // РЕНДЕР ЗАДАНИЙ
-        const tasksData = urlParams.get('tasks');
-        const tasksList = document.getElementById('tasks-list');
-        
-        if (tasksData) {
-            const tasks = JSON.parse(tasksData);
-            tasksList.innerHTML = "";
-            if (tasks.length === 0) {
-                tasksList.innerHTML = "Пока нет заданий от админа.";
+        // РЕНДЕР ЗАДАНИЙ (с расшифровкой текста)
+        try {
+            const rawTasks = urlParams.get('tasks');
+            if (rawTasks) {
+                const tasks = JSON.parse(decodeURIComponent(rawTasks)); // Декодируем
+                const tasksList = document.getElementById('tasks-list');
+                tasksList.innerHTML = "";
+                
+                if (tasks.length === 0) {
+                    tasksList.innerHTML = "Пока нет новых заданий.";
+                } else {
+                    tasks.forEach(t => {
+                        tasksList.innerHTML += `
+                            <div class="task-card">
+                                <strong>${t.desc}</strong><br>
+                                <span style="color:#4caf50">+${t.reward} ₽</span><br>
+                                <button class="btn-action" onclick="window.open('${t.url}', '_blank')">Выполнить</button>
+                            </div>`;
+                    });
+                }
             } else {
-                tasks.forEach(t => {
-                    tasksList.innerHTML += `
-                        <div class="task-card">
-                            <strong>${t.desc}</strong><br>
-                            <span style="color:#4caf50">+${t.reward} ₽</span>
-                            <button class="btn-action" onclick="window.open('${t.url}', '_blank')">Выполнить</button>
-                        </div>`;
-                });
+                document.getElementById('tasks-list').innerText = "Заданий не найдено.";
             }
+        } catch (e) {
+            document.getElementById('tasks-list').innerText = "Ошибка загрузки заданий.";
+            console.error(e);
         }
 
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "0";
@@ -83,7 +92,7 @@ html
 
         function copyRef() {
             navigator.clipboard.writeText(document.getElementById('ref-link').innerText);
-            tg.showAlert("Готово!");
+            tg.showAlert("Ссылка скопирована!");
         }
     </script>
 </body>
