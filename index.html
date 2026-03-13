@@ -7,7 +7,7 @@ html
     <title>Easy Cash App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #1a1a1a; color: white; margin: 0; text-align: center; }
+        body { font-family: sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding-bottom: 50px; }
         .header { padding: 20px; background-color: #2c2c2c; border-bottom: 2px solid #333; }
         .balance-card { background: linear-gradient(135deg, #4caf50, #2e7d32); margin: 20px; padding: 20px; border-radius: 15px; }
         .tabs { display: flex; justify-content: space-around; background: #2c2c2c; padding: 10px 0; }
@@ -15,19 +15,16 @@ html
         .tab.active { background-color: #4caf50; opacity: 1; }
         .content { padding: 20px; }
         .hidden { display: none; }
-        .btn-action { background-color: #4caf50; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-size: 16px; margin-top: 15px; cursor: pointer; }
-        .referral-link { background: #333; padding: 15px; border-radius: 8px; word-break: break-all; margin-top: 10px; font-size: 14px; border: 1px dashed #555; }
-        .task-card { background: #2c2c2c; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: left; border-left: 4px solid #4caf50; }
-        .task-reward { color: #4caf50; font-weight: bold; }
+        .btn-action { background-color: #4caf50; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 10px; }
+        .task-card { background: #2c2c2c; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: left; border-left: 5px solid #4caf50; }
+        .referral-link { background: #333; padding: 15px; border-radius: 8px; word-break: break-all; margin-top: 10px; border: 1px dashed #555; }
     </style>
 </head>
 <body>
     <div class="header"><h2 id="user-greeting">EASY CASH</h2></div>
-
     <div class="balance-card">
-        <div style="font-size: 0.9em; opacity: 0.8;">Ваш баланс:</div>
-        <div id="main-balance" style="font-size: 2.3em; font-weight: bold;">0 ₽</div>
-        <div style="font-size: 0.8em; margin-top: 10px;">Минимальный вывод: 1000 ₽</div>
+        <div style="font-size: 0.8em; opacity: 0.8;">Ваш баланс:</div>
+        <div id="main-balance" style="font-size: 2em; font-weight: bold;">0 ₽</div>
     </div>
 
     <div class="tabs">
@@ -36,18 +33,14 @@ html
     </div>
 
     <div id="content-tasks" class="content">
-        <h3>Доступные задания</h3>
-        <div id="tasks-list">
-            <!-- Задания будут подгружаться сюда -->
-            <p style="color: #888;">Заданий пока нет</p>
-        </div>
+        <div id="tasks-list">Загрузка заданий...</div>
     </div>
 
     <div id="content-refs" class="content hidden">
-        <h3>Реферальная система</h3>
-        <p>За каждого друга вы получаете <b>50 ₽</b></p>
-        <div class="referral-link" id="ref-link">Загрузка...</div>
-        <button class="btn-action" onclick="copyRef()">Копировать ссылку</button>
+        <h3>Рефералы</h3>
+        <p>За друга: <b>50 ₽</b></p>
+        <div class="referral-link" id="ref-link">...</div>
+        <button class="btn-action" onclick="copyRef()">Копировать</button>
     </div>
 
     <script>
@@ -55,36 +48,43 @@ html
         tg.expand();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const userBalance = urlParams.get('bal') || '0';
-        const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "0";
-        const userName = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "Друг";
-
-        document.getElementById('main-balance').innerText = userBalance + " ₽";
-        document.getElementById('user-greeting').innerText = "Привет, " + userName + "!";
+        document.getElementById('main-balance').innerText = (urlParams.get('bal') || '0') + " ₽";
         
-        // Замени на юзернейм своего бота
-        const botUsername = "EasyCash_money1_bot"; 
-        document.getElementById('ref-link').innerText = "https://t.me/" + botUsername + "?start=" + userId;
-
-        function showTab(tab) {
-            if (tab === 'tasks') {
-                document.getElementById('content-tasks').classList.remove('hidden');
-                document.getElementById('content-refs').classList.add('hidden');
-                document.getElementById('tab-tasks').classList.add('active');
-                document.getElementById('tab-refs').classList.remove('active');
+        // РЕНДЕР ЗАДАНИЙ
+        const tasksData = urlParams.get('tasks');
+        const tasksList = document.getElementById('tasks-list');
+        
+        if (tasksData) {
+            const tasks = JSON.parse(tasksData);
+            tasksList.innerHTML = "";
+            if (tasks.length === 0) {
+                tasksList.innerHTML = "Пока нет заданий от админа.";
             } else {
-                document.getElementById('content-tasks').classList.add('hidden');
-                document.getElementById('content-refs').classList.remove('hidden');
-                document.getElementById('tab-tasks').classList.remove('active');
-                document.getElementById('tab-refs').classList.add('active');
+                tasks.forEach(t => {
+                    tasksList.innerHTML += `
+                        <div class="task-card">
+                            <strong>${t.desc}</strong><br>
+                            <span style="color:#4caf50">+${t.reward} ₽</span>
+                            <button class="btn-action" onclick="window.open('${t.url}', '_blank')">Выполнить</button>
+                        </div>`;
+                });
             }
+        }
+
+        const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "0";
+        document.getElementById('ref-link').innerText = "https://t.me/TalkingBattleBot?start=" + userId;
+
+        function showTab(t) {
+            document.getElementById('content-tasks').classList.toggle('hidden', t !== 'tasks');
+            document.getElementById('content-refs').classList.toggle('hidden', t !== 'refs');
+            document.getElementById('tab-tasks').classList.toggle('active', t === 'tasks');
+            document.getElementById('tab-refs').classList.toggle('active', t === 'refs');
         }
 
         function copyRef() {
             navigator.clipboard.writeText(document.getElementById('ref-link').innerText);
-            tg.showAlert("Ссылка скопирована!");
+            tg.showAlert("Готово!");
         }
     </script>
 </body>
 </html>
-
