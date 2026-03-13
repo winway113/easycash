@@ -16,7 +16,8 @@ html
         .content { padding: 20px; }
         .hidden { display: none; }
         .btn-action { background-color: #4caf50; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 10px; font-weight: bold; }
-        .input-promo { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #2c2c2c; color: white; box-sizing: border-box; text-align: center; font-size: 18px; margin-bottom: 10px; }.task-card { background: #2c2c2c; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; border-left: 5px solid #4caf50; }
+        .input-promo { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #2c2c2c; color: white; box-sizing: border-box; text-align: center; font-size: 18px; margin-bottom: 10px; outline: none; }
+        .task-card { background: #2c2c2c; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; border-left: 5px solid #4caf50; }
     </style>
 </head>
 <body>
@@ -40,7 +41,7 @@ html
     <div id="content-promo" class="content hidden">
         <h3>Активация промокода</h3>
         <input type="text" id="promo-input" class="input-promo" placeholder="ВВЕДИТЕ КОД">
-        <button class="btn-action" onclick="usePromo()">Активировать</button>
+        <button id="promo-btn" class="btn-action" onclick="usePromo()">Активировать</button>
     </div>
 
     <div id="content-refs" class="content hidden">
@@ -77,12 +78,18 @@ html
 
         function checkTask(id, reward) {
             tg.sendData(JSON.stringify({action:"check_task", task_id:id, reward:reward}));
+            tg.close();
         }
 
         function usePromo() {
             const codeInput = document.getElementById('promo-input').value;
-            if(!codeInput) return tg.showAlert("Введите промокод!");
+            if(!codeInput) {
+                tg.showAlert("Введите промокод!");
+                return;
+            }
+            // Отправляем данные и ЗАКРЫВАЕМ приложение
             tg.sendData(JSON.stringify({action: "use_promo", code: codeInput}));
+            setTimeout(() => { tg.close(); }, 100); 
         }
 
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "0";
