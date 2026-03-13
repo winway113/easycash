@@ -16,6 +16,7 @@ html
         .content { padding: 20px; }
         .hidden { display: none; }
         .btn-action { background-color: #4caf50; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .btn-check { background-color: #2196F3; margin-top: 5px; }
         .task-card { background: #2c2c2c; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: left; border-left: 5px solid #4caf50; }
         .referral-link { background: #333; padding: 15px; border-radius: 8px; word-break: break-all; margin-top: 10px; border: 1px dashed #555; }
     </style>
@@ -48,36 +49,35 @@ html
         tg.expand();
 
         const urlParams = new URLSearchParams(window.location.search);
-        
-        // Получаем и декодируем баланс
         document.getElementById('main-balance').innerText = (urlParams.get('bal') || '0') + " ₽";
         
-        // РЕНДЕР ЗАДАНИЙ (с расшифровкой текста)
         try {
             const rawTasks = urlParams.get('tasks');
             if (rawTasks) {
-                const tasks = JSON.parse(decodeURIComponent(rawTasks)); // Декодируем
+                const tasks = JSON.parse(decodeURIComponent(rawTasks));
                 const tasksList = document.getElementById('tasks-list');
-                tasksList.innerHTML = "";
+                tasksList.innerHTML = tasks.length === 0 ? "Нет новых заданий." : "";
                 
-                if (tasks.length === 0) {
-                    tasksList.innerHTML = "Пока нет новых заданий.";
-                } else {
-                    tasks.forEach(t => {
-                        tasksList.innerHTML += `
-                            <div class="task-card">
-                                <strong>${t.desc}</strong><br>
-                                <span style="color:#4caf50">+${t.reward} ₽</span><br>
-                                <button class="btn-action" onclick="window.open('${t.url}', '_blank')">Выполнить</button>
-                            </div>`;
-                    });
-                }
-            } else {
-                document.getElementById('tasks-list').innerText = "Заданий не найдено.";
+                tasks.forEach(t => {
+                    tasksList.innerHTML += `
+                        <div class="task-card">
+                            <strong>${t.desc}</strong><br>
+                            <span style="color:#4caf50">+${t.reward} ₽</span><br>
+                            <button class="btn-action" onclick="window.open('${t.url}', '_blank')">1. Перейти к заданию</button>
+                            <button class="btn-action btn-check" onclick="checkTask(${t.id}, ${t.reward})">2. Проверить выполнение</button>
+                        </div>`;
+                });
             }
-        } catch (e) {
-            document.getElementById('tasks-list').innerText = "Ошибка загрузки заданий.";
-            console.error(e);
+        } catch (e) { console.error(e); }
+
+        function checkTask(id, reward) {
+            // Отправляем данные боту
+            tg.sendData(JSON.stringify({
+                action: "check_task",
+                task_id: id,
+                reward: reward
+            }));
+            tg.close(); // Закрываем приложение, чтобы юзер увидел ответ бота
         }
 
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "0";
